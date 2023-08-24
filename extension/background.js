@@ -41,3 +41,39 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     }
   });
 });
+
+const StorageHelper = {
+  get: async (key) => {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(key, (result) => {
+        const data = result[key] || [];
+        resolve(data);
+      });
+    });
+  },}
+
+chrome.runtime.onInstalled.addListener(() => {
+  updateBlockingRules();
+});
+
+export async function updateBlockingRules() {
+  const blockedDomains = await StorageHelper.get('blockedDomains');
+
+  const rule = {
+    id: 4321,
+    action: { type: "block" },
+    condition: {
+      urlFilter: "*://*/*",
+      domains: blockedDomains
+    }
+  };
+
+  chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: [4321],
+    addRules: [rule]
+  });
+  
+}
+
+
+

@@ -6,6 +6,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "module",
   "scripts": {
     "clean": "rm extension/content.js extension/content.js.map",
     "build-dev": "webpack --mode development",

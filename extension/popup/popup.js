@@ -1,3 +1,8 @@
+import StorageHelper from '../storageHelper.js';
+import { updateBlockingRules } from '../background.js';
+
+
+//reminders
 document.addEventListener('DOMContentLoaded', () => {
   const reminderList = document.getElementById('reminderList');
   const reminderForm = document.getElementById('reminderForm');
@@ -109,8 +114,53 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
-});
+})
 
 
+//bloked domains
+document.addEventListener('DOMContentLoaded', async () => {
+  const domainInput = document.getElementById('domainInput');
+  const addDomainButton = document.getElementById('addDomainButton');
+  const blockedDomainsList = document.getElementById('blockedDomainsList');
+  const errorContainer = document.getElementById('errorContainer');
 
+  let blockedDomains = await StorageHelper.get('blockedDomains');
+  updateBlockedDomainsList(blockedDomains);
 
+  addDomainButton.addEventListener('click', async () => {
+    const domain = domainInput.value.trim();
+    if (domain) {
+      if (!blockedDomains.includes(domain)) {
+        blockedDomains.push(domain);
+        await StorageHelper.set('blockedDomains', blockedDomains);
+        domainInput.value = '';
+        console.log('Blocked domains updated:', blockedDomains);
+        updateBlockedDomainsList(blockedDomains);
+        updateBlockingRules();
+        errorContainer.textContent = '';
+      } else {
+        errorContainer.textContent = `Domain "${domain}" already exists in the list.`;
+      }
+    }
+  });
+
+  blockedDomainsList.addEventListener('click', async (event) => {
+    if (event.target.classList.contains('delete-button')) {
+      const domainToDelete = event.target.dataset.domain;
+      blockedDomains = blockedDomains.filter((domain) => domain !== domainToDelete); // Update the array
+      await StorageHelper.set('blockedDomains', blockedDomains);
+      console.log(`Domain ${domainToDelete} removed.`);
+      updateBlockedDomainsList(blockedDomains);
+      updateBlockingRules();
+      errorContainer.textContent = '';
+    }
+  });
+
+  function updateBlockedDomainsList(domains) {
+    blockedDomainsList.innerHTML = domains.length > 0
+      ? domains
+          .map((domain) => `<li>${domain} <button class="delete-button action-button" data-domain="${domain}">Delete</button></li>`)
+          .join('')
+      : '<p class="empty-message">No blocked domains found.</p>';
+  }
+})

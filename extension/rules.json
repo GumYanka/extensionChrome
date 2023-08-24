@@ -1,0 +1,12 @@
+[
+    {
+      "id": 4321,
+      "priority": 1,
+      "action": {
+        "type": "block"
+      },
+      "condition": {
+        "urlFilter": "*://*.example.com/*"
+      }
+    }
+  ]

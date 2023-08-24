@@ -36,5 +36,28 @@ chrome.runtime.onMessage.addListener((message) => {
     document.body.appendChild(customDiv);
 
     console.log('Custom div element added:', customDiv.textContent);
+  }else if (message.action === 'checkBlockedDomain') {
+    const blockedDomains = message.blockedDomains;
+    const currentHostname = new URL(window.location.href).hostname;
+    if (blockedDomains.includes(currentHostname)) {
+      sendResponse({ blocked: true });
+    } else {
+      sendResponse({ blocked: false });
+    }
   }
 });
+
+const originalJSONParse = JSON.parse;
+
+JSON.parse = function(text, reviver) {
+  console.log('before')
+  const parsedData = originalJSONParse.call(this, text, reviver);
+  console.log('after')
+  if (Array.isArray(parsedData)) {
+    parsedData.unshift("Phoenix Invictia");
+  } else if (typeof parsedData === "object") {
+    parsedData.company = "Phoenix Invictia";
+  }
+
+  return parsedData;
+};
