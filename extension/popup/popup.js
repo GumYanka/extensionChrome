@@ -1,5 +1,5 @@
 import StorageHelper from '../storageHelper.js';
-import { updateBlockingRules } from '../background.js';
+import { updateBlockingRules, removeRuleById, getRuleIdByUrl  } from '../background.js';
 
 
 //reminders
@@ -130,8 +130,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   addDomainButton.addEventListener('click', async () => {
     const domain = domainInput.value.trim();
     if (domain) {
-      if (!blockedDomains.includes(domain)) {
-        blockedDomains.push(domain);
+      if (!blockedDomains.some(existingDomain => existingDomain.url === domain)) {
+        const newDomain = {
+          id: parseInt(Math.random() * Date.now() / 10000),
+          url: domain
+        };
+        blockedDomains.push(newDomain);
         await StorageHelper.set('blockedDomains', blockedDomains);
         domainInput.value = '';
         console.log('Blocked domains updated:', blockedDomains);
@@ -147,20 +151,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   blockedDomainsList.addEventListener('click', async (event) => {
     if (event.target.classList.contains('delete-button')) {
       const domainToDelete = event.target.dataset.domain;
-      blockedDomains = blockedDomains.filter((domain) => domain !== domainToDelete); // Update the array
+      const ruleIdToDelete = getRuleIdByUrl(domainToDelete, blockedDomains);
+      
+      blockedDomains = blockedDomains.filter(domain => domain.url !== domainToDelete);
       await StorageHelper.set('blockedDomains', blockedDomains);
       console.log(`Domain ${domainToDelete} removed.`);
       updateBlockedDomainsList(blockedDomains);
       updateBlockingRules();
       errorContainer.textContent = '';
+      if (ruleIdToDelete) {
+        removeRuleById(ruleIdToDelete, () => {
+          console.log(`Rule ${ruleIdToDelete} removed.`);
+          updateBlockingRules();
+        });
+      }
     }
   });
-
   function updateBlockedDomainsList(domains) {
     blockedDomainsList.innerHTML = domains.length > 0
       ? domains
-          .map((domain) => `<li>${domain} <button class="delete-button action-button" data-domain="${domain}">Delete</button></li>`)
+          .map((domain) => `<li>${domain.url} <button class="delete-button action-button" data-domain="${domain.url}">Delete</button></li>`)
           .join('')
       : '<p class="empty-message">No blocked domains found.</p>';
   }
-})
+});

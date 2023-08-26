@@ -1,12 +1,12 @@
 [
-    {
-      "id": 4321,
-      "priority": 1,
-      "action": {
-        "type": "block"
-      },
-      "condition": {
-        "urlFilter": "*://*.example.com/*"
-      }
+  {
+    "id": 1234,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "*://www.google.com/*",
+      "resourceTypes": ["main_frame"]
     }
-  ]
+  }
+]
