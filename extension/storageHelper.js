@@ -17,20 +17,6 @@ const StorageHelper = {
       });
     });
   },
-
-  remove: async (key, valueToRemove) => {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(key, (result) => {
-        const data = result[key] || [];
-        const updatedData = data.filter((value) => value !== valueToRemove);
-
-        chrome.storage.local.set({ [key]: updatedData }, () => {
-          console.log(`${valueToRemove} removed from ${key}.`);
-          resolve();
-        });
-      });
-    });
-  },
 };
 
 export default StorageHelper;

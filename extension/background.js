@@ -73,7 +73,7 @@ chrome.runtime.onInstalled.addListener(() => {
   updateBlockingRules();
 });
 
-export async function updateBlockingRules() {
+async function updateBlockingRules() {
   const blockedDomains = await StorageHelper.get("blockedDomains");
 
   const rules = blockedDomains.map((domain) => ({
@@ -97,21 +97,7 @@ export async function updateBlockingRules() {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "updateRules") {
+  if (message.action === 'updateRules') {
     updateBlockingRules();
   }
 });
-
-export function removeRuleById(ruleId, callback) {
-  chrome.declarativeNetRequest.updateDynamicRules(
-    {
-      removeRuleIds: [ruleId],
-    },
-    callback
-  );
-}
-
-export function getRuleIdByUrl(url, blockedDomains) {
-  const domain = blockedDomains.find((domain) => domain.url === url);
-  return domain ? domain.id : null;
-}

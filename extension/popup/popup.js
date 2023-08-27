@@ -1,6 +1,4 @@
 import StorageHelper from '../storageHelper.js';
-import { updateBlockingRules, removeRuleById, getRuleIdByUrl  } from '../background.js';
-
 
 //reminders
 document.addEventListener('DOMContentLoaded', () => {
@@ -127,6 +125,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   let blockedDomains = await StorageHelper.get('blockedDomains');
   updateBlockedDomainsList(blockedDomains);
 
+  function removeRuleById(ruleId, callback) {
+    chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: [ruleId]
+    }, callback);
+  }
+
+  function getRuleIdByUrl(url, blockedDomains) {
+    const domain = blockedDomains.find(domain => domain.url === url);
+    return domain ? domain.id : null;
+  }
+
   addDomainButton.addEventListener('click', async () => {
     const domain = domainInput.value.trim();
     if (domain) {
@@ -140,7 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         domainInput.value = '';
         console.log('Blocked domains updated:', blockedDomains);
         updateBlockedDomainsList(blockedDomains);
-        updateBlockingRules();
+        chrome.runtime.sendMessage({ action: 'updateRules' });
         errorContainer.textContent = '';
       } else {
         errorContainer.textContent = `Domain "${domain}" already exists in the list.`;
@@ -157,12 +166,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       await StorageHelper.set('blockedDomains', blockedDomains);
       console.log(`Domain ${domainToDelete} removed.`);
       updateBlockedDomainsList(blockedDomains);
-      updateBlockingRules();
+      chrome.runtime.sendMessage({ action: 'updateRules' });
       errorContainer.textContent = '';
       if (ruleIdToDelete) {
         removeRuleById(ruleIdToDelete, () => {
           console.log(`Rule ${ruleIdToDelete} removed.`);
-          updateBlockingRules();
+          chrome.runtime.sendMessage({ action: 'updateRules' });
         });
       }
     }
